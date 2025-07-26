@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
 
 
 
-        val adapter = MainAdapter(categories)
+        val adapter = CategoryAdapter(categories)
         val rv: RecyclerView =  findViewById(R.id.rv_main)
         rv.layoutManager = LinearLayoutManager(this)
         rv.adapter = adapter
