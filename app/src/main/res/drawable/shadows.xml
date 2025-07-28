@@ -12,14 +12,7 @@
 
     </item>
 
-    <item>
-        <shape>
-            <gradient android:angle="0"
-                android:startColor="#44000000"
-                android:endColor="#00000000" />
-        </shape>
 
-    </item>
 
 
 </layer-list>
