@@ -1,5 +1,4 @@
 package dev.tiagomarcial.netflix_remake.model
 
-import androidx.annotation.DrawableRes
 
-data class Movie(@DrawableRes val coverURL: Int)
+data class Movie(val id: Int, val coverUrl: String)
