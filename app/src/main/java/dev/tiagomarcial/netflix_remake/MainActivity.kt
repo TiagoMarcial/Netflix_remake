@@ -2,6 +2,9 @@ package dev.tiagomarcial.netflix_remake
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -10,21 +13,42 @@ import dev.tiagomarcial.netflix_remake.model.Category
 import dev.tiagomarcial.netflix_remake.model.Movie
 import dev.tiagomarcial.netflix_remake.util.CategoryTask
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), CategoryTask.Callback {
 
+    private lateinit var progress: ProgressBar
+    private lateinit var adapter: CategoryAdapter
+    val categories = mutableListOf<Category>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        val categories = mutableListOf<Category>()
+        progress = findViewById(R.id.progress_main)
 
-        val adapter = CategoryAdapter(categories)
+
+
+        adapter = CategoryAdapter(categories)
         val rv: RecyclerView =  findViewById(R.id.rv_main)
         rv.layoutManager = LinearLayoutManager(this)
         rv.adapter = adapter
 
-        CategoryTask().execute("https://api.tiagoaguiar.co//netflixapp/home?apiKey=e3947471-3c1d-448c-9748-1fa9b986fde3")
+        CategoryTask(this).execute("https://api.tiagoaguiar.co//netflixapp/home?apiKey=e3947471-3c1d-448c-9748-1fa9b986fde3")
+    }
+
+    override fun onResult(categories: List<Category>) {
+        this.categories.clear()
+        this.categories.addAll(categories)
+        adapter.notifyDataSetChanged()
+        progress.visibility = View.GONE
+    }
+
+    override fun onFailure(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        progress.visibility = View.GONE
+    }
+
+    override fun onPreExecute() {
+        progress.visibility = View.VISIBLE
     }
 }
