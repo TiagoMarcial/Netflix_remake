@@ -6,9 +6,11 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView
+import com.squareup.picasso.Picasso
 import dev.tiagomarcial.netflix_remake.model.Movie
 
-class MovieAdapter(private val movies: List<Movie>, @LayoutRes private val layoutId: Int): RecyclerView.Adapter<MovieAdapter.MovieViewHolder>() {
+class MovieAdapter(private val movies: List<Movie>, @LayoutRes private val layoutId: Int, private val onItemClickListenner: ((Int) -> Unit)? = null):
+    RecyclerView.Adapter<MovieAdapter.MovieViewHolder>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieViewHolder {
             val view = LayoutInflater.from(parent.context).inflate(layoutId, parent, false)
             return MovieViewHolder(view)
@@ -26,7 +28,10 @@ class MovieAdapter(private val movies: List<Movie>, @LayoutRes private val layou
         inner class MovieViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             fun bind(movie: Movie) {
                 val imageCover: ImageView = itemView.findViewById(R.id.img_cover)
-                //imageCover.setImageResource(movie.coverURL)
+                Picasso.get().load(movie.coverUrl).into(imageCover)
+                imageCover.setOnClickListener {
+                    onItemClickListenner?.invoke(movie.id)
+                }
             }
         }
     }

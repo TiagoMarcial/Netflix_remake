@@ -1,5 +1,6 @@
 package dev.tiagomarcial.netflix_remake
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -28,7 +29,13 @@ class MainActivity : AppCompatActivity(), CategoryTask.Callback {
 
 
 
-        adapter = CategoryAdapter(categories)
+        adapter = CategoryAdapter(categories) {
+            id -> val intent = Intent (this@MainActivity, MovieActivity::class.java)
+            intent.putExtra("id", id)
+            startActivity(intent)
+        }
+
+
         val rv: RecyclerView =  findViewById(R.id.rv_main)
         rv.layoutManager = LinearLayoutManager(this)
         rv.adapter = adapter
