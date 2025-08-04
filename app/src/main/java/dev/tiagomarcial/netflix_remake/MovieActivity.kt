@@ -4,8 +4,11 @@ import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
+import android.view.View
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -15,26 +18,42 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dev.tiagomarcial.netflix_remake.model.Movie
+import dev.tiagomarcial.netflix_remake.model.MovieDetail
+import dev.tiagomarcial.netflix_remake.util.MovieTask
 
-class MovieActivity : AppCompatActivity() {
+class MovieActivity : AppCompatActivity(), MovieTask.Callback {
+
+    private lateinit var  txtTitle: TextView
+    private lateinit var  txtDesc: TextView
+    private lateinit var  txtCast: TextView
+    private lateinit var  adapter: MovieAdapter
+    private lateinit var progress: ProgressBar
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_movie)
 
-        val txtTitle: TextView = findViewById(R.id.movie_txt_title)
-        val txtDesc: TextView = findViewById(R.id.movie_txt_desc)
-        val txtCast: TextView = findViewById(R.id.movie_txt_cast)
+        txtTitle = findViewById(R.id.movie_txt_title)
+        txtDesc = findViewById(R.id.movie_txt_desc)
+        txtCast = findViewById(R.id.movie_txt_cast)
+        progress = findViewById(R.id.movie_progress)
+
         val rv: RecyclerView = findViewById(R.id.movie_rv_similar)
+        val id = intent?.getIntExtra("id", 0) ?: throw IllegalStateException("ID não foi encontrado!")
+        val url = "https://api.tiagoaguiar.co//netflixapp/movie/$id?apiKey=e3947471-3c1d-448c-9748-1fa9b986fde3"
+
+        MovieTask(this).execute(url)
 
         txtTitle.text = "Batman Begins"
         txtDesc.text = "Essa é a decrição do filme do Batman"
         txtCast.text = getString(R.string.cast, "Ator A, Ator B, Atriz A, Atriz B")
 
         val movies = mutableListOf<Movie>()
+        adapter = MovieAdapter(movies, R.layout.movie_item_similar)
         rv.layoutManager = GridLayoutManager(this, 3)
-        rv.adapter = MovieAdapter(movies, R.layout.movie_item_similar)
+        rv.adapter = adapter
 
         val toolbar: Toolbar = findViewById(R.id.movie_toolbar)
         setSupportActionBar(toolbar)
@@ -50,6 +69,21 @@ class MovieActivity : AppCompatActivity() {
         val coverImg: ImageView = findViewById(R.id.movie_img)
         coverImg.setImageDrawable(layerDrawable)
     }
+
+    override fun onPreExecute() {
+        progress.visibility = View.VISIBLE
+
+    }
+
+    override fun onFailure(message: String) {
+        progress.visibility = View.GONE
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
+    override fun onResult(movieDetail: MovieDetail) {
+        Log.i("teste", movieDetail.toString())
+    }
+
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) {
