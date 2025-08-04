@@ -1,5 +1,8 @@
 package dev.tiagomarcial.netflix_remake
 
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import android.util.Log
@@ -17,9 +20,11 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.squareup.picasso.Picasso
 import dev.tiagomarcial.netflix_remake.model.Movie
 import dev.tiagomarcial.netflix_remake.model.MovieDetail
 import dev.tiagomarcial.netflix_remake.util.MovieTask
+import java.lang.Exception
 
 class MovieActivity : AppCompatActivity(), MovieTask.Callback {
 
@@ -28,6 +33,7 @@ class MovieActivity : AppCompatActivity(), MovieTask.Callback {
     private lateinit var  txtCast: TextView
     private lateinit var  adapter: MovieAdapter
     private lateinit var progress: ProgressBar
+    private val movies = mutableListOf<Movie>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -46,11 +52,9 @@ class MovieActivity : AppCompatActivity(), MovieTask.Callback {
 
         MovieTask(this).execute(url)
 
-        txtTitle.text = "Batman Begins"
-        txtDesc.text = "Essa é a decrição do filme do Batman"
-        txtCast.text = getString(R.string.cast, "Ator A, Ator B, Atriz A, Atriz B")
 
-        val movies = mutableListOf<Movie>()
+
+
         adapter = MovieAdapter(movies, R.layout.movie_item_similar)
         rv.layoutManager = GridLayoutManager(this, 3)
         rv.adapter = adapter
@@ -62,12 +66,12 @@ class MovieActivity : AppCompatActivity(), MovieTask.Callback {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = null
 
-        val layerDrawable: LayerDrawable = ContextCompat.getDrawable(this, R.drawable.shadows) as LayerDrawable
-        val movieCover = ContextCompat.getDrawable(this, R.drawable.movie_4)
-        layerDrawable.setDrawableByLayerId(R.id.cover_drawable, movieCover)
-
-        val coverImg: ImageView = findViewById(R.id.movie_img)
-        coverImg.setImageDrawable(layerDrawable)
+//        val layerDrawable: LayerDrawable = ContextCompat.getDrawable(this, R.drawable.shadows) as LayerDrawable
+//        val movieCover = ContextCompat.getDrawable(this, R.drawable.movie_4)
+//        layerDrawable.setDrawableByLayerId(R.id.cover_drawable, movieCover)
+//
+//        val coverImg: ImageView = findViewById(R.id.movie_img)
+//        coverImg.setImageDrawable(layerDrawable)
     }
 
     override fun onPreExecute() {
@@ -81,8 +85,57 @@ class MovieActivity : AppCompatActivity(), MovieTask.Callback {
     }
 
     override fun onResult(movieDetail: MovieDetail) {
-        Log.i("teste", movieDetail.toString())
+        progress.visibility = View.GONE
+
+        txtTitle.text = movieDetail.movie.title
+        txtDesc.text = movieDetail.movie.desc
+        txtCast.text = getString(R.string.cast, movieDetail.movie.cast)
+
+        movies.clear()
+        movies.addAll(movieDetail.similars)
+        adapter.notifyDataSetChanged()
+
+        val coverImg: ImageView = findViewById(R.id.movie_img)
+
+
+        val target = object : com.squareup.picasso.Target {
+            override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                if (bitmap != null) {
+                    val movieCover = BitmapDrawable(resources, bitmap)
+
+                    val layerDrawable = ContextCompat.getDrawable(
+                        this@MovieActivity,
+                        R.drawable.shadows
+                    ) as LayerDrawable
+
+
+                    layerDrawable.setDrawableByLayerId(R.id.cover_drawable, movieCover)
+
+                    coverImg.setImageDrawable(layerDrawable)
+                }
+            }
+
+            override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
+                coverImg.setImageResource(R.drawable.placeholder_bg)
+            }
+
+            override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
+                coverImg.setImageDrawable(placeHolderDrawable)
+            }
+        }
+
+
+        coverImg.tag = target
+
+
+        Picasso.get()
+            .load(movieDetail.movie.coverUrl)
+            .placeholder(R.drawable.placeholder_bg)
+            .error(R.drawable.placeholder_bg)
+            .into(target)
     }
+
+
 
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
